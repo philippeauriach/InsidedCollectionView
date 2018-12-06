@@ -1,0 +1,6 @@
+framework module InsidedCollectionView {
+  umbrella header "InsidedCollectionView-umbrella.h"
+
+  export *
+  module * { export * }
+}
