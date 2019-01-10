@@ -87,13 +87,17 @@ open class InsidedCollectionViewManager : NSObject {
         return representation
     }
 
-    fileprivate func update(collectionView: UICollectionView, withPreviousRepresentation: [String], andNewRepresentation: [String]) {
+    fileprivate func generateUpdate(withPreviousRepresentation: [String], andNewRepresentation: [String]) -> BatchUpdate {
         let previousRepresentation = fillWithInserts(representation: withPreviousRepresentation)
         let newRepresentation = fillWithInserts(representation: andNewRepresentation)
 
         let diff = previousRepresentation.extendedDiff(newRepresentation)
-        let update = BatchUpdate(diff: diff)
+        return BatchUpdate(diff: diff)
+    }
 
+    fileprivate func update(collectionView: UICollectionView, withPreviousRepresentation: [String], andNewRepresentation: [String]) {
+        let update = generateUpdate(withPreviousRepresentation: withPreviousRepresentation,
+                                    andNewRepresentation: andNewRepresentation)
         collectionView.deleteItems(at: update.deletions)
         collectionView.insertItems(at: update.insertions)
         update.moves.forEach { collectionView.moveItem(at: $0.from, to: $0.to) }
@@ -138,5 +142,56 @@ open class InsidedCollectionViewManager : NSObject {
 
     open func moveItem(at indexPath: IndexPath, to newIndexPath: IndexPath, inCollectionView: UICollectionView) {
         inCollectionView.moveItem(at: fakeIndexPath(indexPath), to: fakeIndexPath(newIndexPath))
+    }
+
+    fileprivate func update(tableView: UITableView, withPreviousRepresentation: [String], andNewRepresentation: [String], with: UITableViewRowAnimation = UITableViewRowAnimation.automatic) {
+        let update = generateUpdate(withPreviousRepresentation: withPreviousRepresentation,
+                                    andNewRepresentation: andNewRepresentation)
+
+        tableView.deleteRows(at: update.deletions, with: with)
+        tableView.insertRows(at: update.insertions, with: with)
+        update.moves.forEach { tableView.moveRow(at: $0.from, to: $0.to) }
+    }
+
+    open func insertRows(at indexPaths: [IndexPath], beforeCount: Int, inTableView: UITableView, with: UITableViewRowAnimation = UITableViewRowAnimation.automatic) {
+        var indexPaths = indexPaths
+        indexPaths.sort { (a, b) -> Bool in
+            return a.row < b.row
+        }
+
+        let previousRepresentation = getRepresentationWithoutInsert(count: beforeCount)
+        var newRepresentation = previousRepresentation
+
+        indexPaths.forEach { (indexPath: IndexPath) in
+            newRepresentation.insert("new:\(indexPath.row)", at: indexPath.row)
+        }
+
+        update(tableView: inTableView, withPreviousRepresentation: previousRepresentation, andNewRepresentation: newRepresentation, with: with)
+    }
+
+    open func deleteRows(at indexPaths: [IndexPath], beforeCount: Int, inTableView: UITableView, with: UITableViewRowAnimation = UITableViewRowAnimation.automatic) {
+
+        var indexPaths = indexPaths
+        indexPaths.sort { (a, b) -> Bool in
+            return a.row > b.row
+        }
+
+        let previousRepresentation = getRepresentationWithoutInsert(count: beforeCount)
+        var newRepresentation = previousRepresentation
+
+        indexPaths.forEach { (indexPath: IndexPath) in
+            newRepresentation.remove(at: indexPath.row)
+        }
+
+        update(tableView: inTableView, withPreviousRepresentation: previousRepresentation, andNewRepresentation: newRepresentation, with: with)
+    }
+
+    open func reloadRows(at indexPaths: [IndexPath], inTableView: UITableView, with: UITableViewRowAnimation) {
+        let indexPaths = indexPaths.map { fakeIndexPath($0) }
+        inTableView.reloadRows(at: indexPaths, with: with)
+    }
+
+    open func moveItem(at indexPath: IndexPath, to newIndexPath: IndexPath, inTableView: UITableView) {
+        inTableView.moveRow(at: fakeIndexPath(indexPath), to: fakeIndexPath(newIndexPath))
     }
 }
