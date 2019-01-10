@@ -191,7 +191,7 @@ open class InsidedCollectionViewManager : NSObject {
         inTableView.reloadRows(at: indexPaths, with: with)
     }
 
-    open func moveItem(at indexPath: IndexPath, to newIndexPath: IndexPath, inTableView: UITableView) {
+    open func moveRow(at indexPath: IndexPath, to newIndexPath: IndexPath, inTableView: UITableView) {
         inTableView.moveRow(at: fakeIndexPath(indexPath), to: fakeIndexPath(newIndexPath))
     }
 }

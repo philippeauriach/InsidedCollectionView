@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'InsidedCollectionView'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'Allow inserting cells at specific interval in a collectionView or tableView without changing all indexes. Cool for inserting ads.'
 
 # This description is used to generate tags and improve search results.
